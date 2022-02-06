@@ -5,6 +5,13 @@ import configparser
 from botocore.exceptions import ClientError
 
 def create_clients(KEY, SECRET):
+    """
+    This creates ec2, s3, redshift and iam SDK clients
+    
+    INPUTS:
+    * KEY: the AWS IAM key allowing your python runtime to connect to your AWS account
+    * SECRET: the AWS IAM secret allowing your python runtime to connect to your AWS account
+    """
     ec2 = boto3.resource('ec2',
                        region_name="us-west-2",
                        aws_access_key_id=KEY,
@@ -29,6 +36,13 @@ def create_clients(KEY, SECRET):
     return ec2, s3, redshift, iam
 
 def create_dwh_role(DWH_IAM_ROLE_NAME, iam_client):
+    """
+    This function takes in a required IAM role name and an IAM SDK client in oder to create a DWH role, needed to automate the creation of a redshift   datawarehouse
+
+    INPUTS:
+    * DWH_IAM_ROLE_NAME: the required IAM role
+    * iam_client: the IAM sdk client
+    """
     try:
         print("1.1 Creating a new IAM Role") 
         dwhRole = iam_client.create_role(
@@ -64,10 +78,17 @@ def create_dwh_role(DWH_IAM_ROLE_NAME, iam_client):
             
     print("1.3 Get the IAM role ARN")
     roleArn = iam_client.get_role(RoleName=DWH_IAM_ROLE_NAME)['Role']['Arn']
-    print(roleArn)
     return roleArn
     
 def create_cluster(DWH_CLUSTER_TYPE, DWH_NODE_TYPE, DWH_NUM_NODES, DWH_DB, DWH_CLUSTER_IDENTIFIER, DWH_DB_USER, DWH_DB_PASSWORD, roleArn, redshift):
+    """
+    This function takes in required config values, creates a new redshift cluster
+
+    INPUTS:
+    * Config values in ALL_CAPS are self describing and imported from dwh.cf (these require values are described via AWS documentation)
+    * roleArn: the resource number for the datawarehouse role created by the create_dwh_role function
+    * redshift: the redshift sdk client
+    """
     try:
         response = redshift.create_cluster(        
         #HW
@@ -88,6 +109,9 @@ def create_cluster(DWH_CLUSTER_TYPE, DWH_NODE_TYPE, DWH_NUM_NODES, DWH_DB, DWH_C
         print(e)
     
 def main():
+    """
+    This runs the 'create_dwh.py' module in order to create a new Redshift cluster & subsequently a datawarehouse
+    """
     config = configparser.ConfigParser()
     config.read_file(open('dwh.cfg'))
     KEY                    = config.get('AWS','KEY')

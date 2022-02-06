@@ -8,6 +8,13 @@ from sql_queries import create_table_queries, drop_table_queries, copy_table_que
 
 
 def load_staging_tables(cur, conn):
+    """
+    This function copies data from an S3 source into Redshift staging tables, staging_events & staging_songs
+
+    INPUTS:
+    * cur: the cursor variable
+    * conn: the connection to the Redshift DWH.
+    """
     for query in copy_table_queries:
         cur.execute(query)
         print("Copy Query Completed:" + query)
@@ -15,6 +22,13 @@ def load_staging_tables(cur, conn):
 
 
 def insert_tables(cur, conn):
+    """
+    This function takes data from Redshift staging tables and inserts them into Redshift Analytical Tables
+
+    INPUTS:
+    * cur: the cursor variable
+    * conn: the connection to the Redshift DWH.
+    """
     for query in insert_table_queries:
         cur.execute(query)
         print("Insert Query Completed:" + query)
@@ -22,6 +36,11 @@ def insert_tables(cur, conn):
 
 
 def main():
+    """
+     For the etl module this function:
+     * applies the load_staging table function to populate the staging_events & staging_songs tables
+     * applies the insert_tales function to copy data from staging_events & staging_songs tables to the users, artists, songs, time and songplay tables
+    """
     #Get required Config
     config = configparser.ConfigParser()
     config.read('dwh.cfg')
